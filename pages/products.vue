@@ -4,6 +4,7 @@ import {
     ArchiveBoxIcon, HomeIcon, MusicalNoteIcon, DevicePhoneMobileIcon, ServerStackIcon, ChevronRightIcon, ChevronLeftIcon
 } from "@heroicons/vue/24/outline";
 
+// tất cả sản phẩm lấy từ dữ liệu
 const slides = [
     { image: "/19.jpg", title: "Slide 1", description: "Mô tả slide 1" },
     { image: "/29.jpg", title: "Slide 2", description: "Mô tả slide 2" },
@@ -93,7 +94,7 @@ const onTouchEnd = () => {
             class="container py-20 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-8 relative bg-white -top-16 rounded-t-2xl">
             <!-- categories -->
             <div class="md:col-span-1 lg:col-span-3 flex flex-col gap-y-8">
-                <h2 class="text-2xl font-semibold mb-4 text-secondary">Category</h2>
+                <h2 class="text-2xl font-semibold mb-4">Category</h2>
 
                 <!-- Danh mục chính -->
                 <ul class="space-y-2">
@@ -155,7 +156,7 @@ const onTouchEnd = () => {
         <!-- Recommended Slider -->
         <section class="py-12">
             <div class="container">
-                <h1 class="text-3xl font-bold text-secondary mb-6">Recommended</h1>
+                <h1 class="text-3xl font-bold mb-6">Recommended</h1>
             </div>
 
             <div class="relative flex items-center">

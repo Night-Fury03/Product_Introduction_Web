@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
+import { ArrowUpRightIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 
 const slides = [
     { image: "/19.jpg", title: "Slide 1", description: "Mô tả slide 1" },
@@ -61,6 +61,35 @@ const getSlideStyle = (index) => {
         zIndex: index === 1 ? 10 : 5,
     };
 };
+
+// Slider Recommended
+const currentIndex = ref(0);
+const recommendedItemsPerPage = 3;
+const prev = () => currentIndex.value = Math.max(currentIndex.value - 1, 0);
+const next = () => currentIndex.value = Math.min(currentIndex.value + 1, slides.length - recommendedItemsPerPage);
+
+const touchStartX = ref(0);
+const touchEndX = ref(0);
+
+const onTouchStart = (event) => {
+    touchStartX.value = event.touches[0].clientX;
+};
+
+const onTouchMove = (event) => {
+    touchEndX.value = event.touches[0].clientX;
+};
+
+const onTouchEnd = () => {
+    const diff = touchStartX.value - touchEndX.value;
+
+    if (diff > 50) {
+        // Vuốt trái (Next slide)
+        nextSlide();
+    } else if (diff < -50) {
+        // Vuốt phải (Previous slide)
+        prevSlide();
+    }
+};
 </script>
 
 
@@ -120,28 +149,8 @@ const getSlideStyle = (index) => {
         </section>
 
         <!-- New products -->
-        <section class="container py-20">
+        <section class="py-20">
             <h2 class="text-center text-3xl font-bold mb-6">New Products</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                <div v-for="(slide, index) in slides" :key="index" class="flex flex-col shadow rounded-md">
-                    <NuxtImg sizes="xs:100vw sm:356px" format="webp" densities="x1" :src="slide.image" alt=""
-                        class="rounded-t-md" />
-                    <div class="flex flex-col py-6 px-4 flex-1 gap-2">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-2xl font-medium">Toire</h2>
-                            <h1 class="text-3xl font-bold">S001</h1>
-                        </div>
-                        <p class="text-xs font-light text-text opacity-80">680x390x430mm</p>
-                        <p class="text-md font-light text-text">{{ slide.description }}</p>
-                        <p class="text-md font-light text-text opacity-80">$30.00</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Hot blog -->
-        <section class="bg-background py-20">
-            <h2 class="text-center text-3xl font-bold mb-6">Hot Blog</h2>
             <div class="container flex flex-col gap-12">
                 <div v-for="(blog, index) in blogs" :key="index" class="flex flex-col md:flex-row gap-6 items-center"
                     :class="index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'">
@@ -158,6 +167,105 @@ const getSlideStyle = (index) => {
                         <p class="text-md font-light text-text">{{ blog.text }}</p>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- feature products -->
+        <section class="py-20">
+            <div class="container flex justify-between items-center mb-12">
+                <h2 class="text-center text-3xl font-bold">Feature Products</h2>
+
+                <div class="hidden md:block">
+                    <NuxtLink to="/products"
+                        class="flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
+                        <p class="text-base font-light ">Explore</p>
+                        <ArrowUpRightIcon
+                            class="w-8 h-8 justify-end group-hover:rotate-45 group-hover:bg-white group-hover:text-text ease-linear duration-300 rounded-full border border-border group-hover:border-none p-2 " />
+                    </NuxtLink>
+                </div>
+            </div>
+
+            <div class="relative flex items-center">
+                <div class="relative overflow-hidden w-full pl-20 py-6" @touchstart="onTouchStart"
+                    @touchmove="onTouchMove" @touchend="onTouchEnd">
+                    <div class="flex gap-6 transition-transform duration-300 ease-in-out"
+                        :style="{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }">
+                        <div v-for="(slide, index) in slides" :key="index"
+                            class="min-w-[calc(100%/4)] bg-white shadow-md rounded-lg overflow-hidden">
+                            <NuxtImg :src="slide.image" alt="" class="w-full h-48 object-cover" />
+                            <div class="p-4">
+                                <h2 class="text-lg font-semibold mt-2">{{ slide.title }}</h2>
+                                <p class="text-lg font-bold mt-2">{{ slide.price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <button @click="prev" class="absolute left-0  hover:bg-background p-2 rounded-full hover:shadow-lg z-10"
+                    :disabled="currentIndex === 0">
+                    <ChevronLeftIcon class="w-6 h-6" />
+                </button>
+                <button @click="next" class="absolute right-0 hover:bg-background p-2 rounded-full hover:shadow-lg z-10"
+                    :disabled="currentIndex >= slides.length - recommendedItemsPerPage">
+                    <ChevronRightIcon class="w-6 h-6" />
+                </button>
+            </div>
+
+            <div class="container block md:hidden mt-12">
+                <NuxtLink to="/blog"
+                    class="w-1/2 flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
+                    <p class="text-base font-light ">Explore</p>
+                    <ArrowUpRightIcon
+                        class="w-8 h-8 justify-end group-hover:rotate-45 group-hover:bg-white group-hover:text-text ease-linear duration-300 rounded-full border border-border group-hover:border-none p-2 " />
+                </NuxtLink>
+            </div>
+        </section>
+
+        <!-- Hot blog -->
+        <section class="py-20">
+            <div class="container flex justify-between items-center mb-12">
+                <h2 class="text-center text-3xl font-bold">Hot Blog</h2>
+
+                <div class="hidden md:block">
+                    <NuxtLink to="/blog"
+                        class="flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
+                        <p class="text-base font-light ">Explore</p>
+                        <ArrowUpRightIcon
+                            class="w-8 h-8 justify-end group-hover:rotate-45 group-hover:bg-white group-hover:text-text ease-linear duration-300 rounded-full border border-border group-hover:border-none p-2 " />
+                    </NuxtLink>
+                </div>
+            </div>
+            <div class="container grid grid-cols-1 md:grid-cols-4 gap-12">
+                <!-- Blog chính (Lớn) -->
+                <div class="md:col-span-2 flex flex-col gap-6">
+                    <NuxtImg format="webp" densities="x1" :src="blogs[0].image" alt=""
+                        class="rounded-md w-full h-[250px] object-cover shadow-md" />
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2">{{ blogs[0].title }}</h3>
+                        <p class="text-md font-light text-text">{{ blogs[0].text }}</p>
+                    </div>
+                </div>
+
+                <!-- Danh sách các blog nhỏ -->
+                <div class="md:col-span-2 flex flex-col gap-6">
+                    <div v-for="(blog, index) in blogs.slice(1)" :key="index" class="flex items-center gap-6">
+                        <NuxtImg format="webp" densities="x1" :src="blog.image" alt=""
+                            class="rounded-md w-1/2 h-20 object-cover shadow-md" />
+                        <div>
+                            <h4 class="text-lg font-semibold">{{ blog.title }} afasdvasvbasdv</h4>
+                            <p class="text-sm text-text opacity-80">{{ blog.text }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container block md:hidden mt-12">
+                <NuxtLink to="/blog"
+                    class="w-1/2 flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
+                    <p class="text-base font-light ">Explore</p>
+                    <ArrowUpRightIcon
+                        class="w-8 h-8 justify-end group-hover:rotate-45 group-hover:bg-white group-hover:text-text ease-linear duration-300 rounded-full border border-border group-hover:border-none p-2 " />
+                </NuxtLink>
             </div>
         </section>
     </main>
