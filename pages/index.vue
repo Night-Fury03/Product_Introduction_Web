@@ -62,6 +62,13 @@ const getSlideStyle = (index) => {
     };
 };
 
+const itemsPerPage = computed(() => {
+    if (window.innerWidth >= 1024) return 4; // Desktop
+    if (window.innerWidth >= 768) return 3;  // Tablet
+    return 2; // Mobile
+});
+
+
 // Slider Recommended
 const currentIndex = ref(0);
 const recommendedItemsPerPage = 3;
@@ -82,14 +89,39 @@ const onTouchMove = (event) => {
 const onTouchEnd = () => {
     const diff = touchStartX.value - touchEndX.value;
 
-    if (diff > 50) {
-        // Vuốt trái (Next slide)
-        nextSlide();
-    } else if (diff < -50) {
-        // Vuốt phải (Previous slide)
-        prevSlide();
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+            nextSlide();
+        } else {
+            prevSlide();
+        }
     }
 };
+
+const featureTouchStartX = ref(0);
+const featureTouchEndX = ref(0);
+
+const onFeatureTouchStart = (event) => {
+    featureTouchStartX.value = event.touches[0].clientX;
+};
+
+const onFeatureTouchMove = (event) => {
+    featureTouchEndX.value = event.touches[0].clientX;
+};
+
+const onFeatureTouchEnd = () => {
+    const diff = featureTouchStartX.value - featureTouchEndX.value;
+
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+            next(); // Vuốt sang trái -> chuyển slide tiếp theo
+        } else {
+            prev(); // Vuốt sang phải -> chuyển slide trước đó
+        }
+    }
+};
+
+
 </script>
 
 
@@ -126,14 +158,14 @@ const onTouchEnd = () => {
 
 
                 <!-- Product img -->
-                <div
-                    class="relative flex-1 lg:order-2 flex justify-center items-center w-full min-h-[250px] sm:min-h-[300px] lg:h-[300px] overflow-hidden">
-                    <div v-for="(slide, index) in rotatedSlides" :key="slide.image" @click="goToSlide(slide)"
+                <div class="relative flex-1 lg:order-2 flex justify-center items-center w-full min-h-[250px] sm:min-h-[300px] lg:h-[300px] overflow-hidden"
+                    @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
+                    <NuxtLink v-for="(slide, index) in rotatedSlides" :key="slide.image" @click="goToSlide(slide)"
                         class="absolute cursor-pointer transition-all duration-500 ease-in-out bg-transparent p-4"
                         :style="getSlideStyle(index)">
                         <NuxtImg sizes="xs:100vw" format="webp" densities="x1" :src="slide.image" alt=""
                             class="object-cover rounded-lg h-[250px]" />
-                    </div>
+                    </NuxtLink>
                 </div>
             </div>
 
@@ -150,32 +182,33 @@ const onTouchEnd = () => {
 
         <!-- New products -->
         <section class="py-20">
-            <h2 class="text-center text-3xl font-bold mb-6">New Products</h2>
+            <h2 class="text-center text-3xl font-bold mb-6 autoShow">New Products</h2>
             <div class="container flex flex-col gap-12">
-                <div v-for="(blog, index) in blogs" :key="index" class="flex flex-col md:flex-row gap-6 items-center"
+                <NuxtLink to="/details" v-for="(blog, index) in blogs" :key="index"
+                    class="flex flex-col md:flex-row gap-6 items-center"
                     :class="index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'">
 
                     <!-- Ảnh blog -->
-                    <div class="flex-1 flex justify-center">
+                    <div class="flex-1 flex justify-center autoShow">
                         <NuxtImg format="webp" densities="x1" :src="blog.image" alt=""
                             class="rounded-md max-w-[356px] flex-1 shadow-md" />
                     </div>
 
                     <!-- Nội dung blog -->
-                    <div class="flex-1" :class="index % 2 === 0 ? 'text-left' : 'text-right'">
+                    <div class="flex-1 autoShow" :class="index % 2 === 0 ? 'text-left' : 'text-right'">
                         <h3 class="text-2xl font-semibold mb-2">{{ blog.title }}</h3>
                         <p class="text-md font-light text-text">{{ blog.text }}</p>
                     </div>
-                </div>
+                </NuxtLink>
             </div>
         </section>
 
         <!-- feature products -->
         <section class="py-20">
             <div class="container flex justify-between items-center mb-12">
-                <h2 class="text-center text-3xl font-bold">Feature Products</h2>
+                <h2 class="text-center text-3xl font-bold fade-slide-left-to-right">Feature Products</h2>
 
-                <div class="hidden md:block">
+                <div class="hidden md:block fade-slide-right-to-left">
                     <NuxtLink to="/products"
                         class="flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
                         <p class="text-base font-light ">Explore</p>
@@ -185,9 +218,9 @@ const onTouchEnd = () => {
                 </div>
             </div>
 
-            <div class="relative flex items-center">
-                <div class="relative overflow-hidden w-full pl-20 py-6" @touchstart="onTouchStart"
-                    @touchmove="onTouchMove" @touchend="onTouchEnd">
+            <div class="relative flex items-center autoShow">
+                <div class="relative overflow-hidden w-full pl-20 py-6" @touchstart="onFeatureTouchStart"
+                    @touchmove="onFeatureTouchMove" @touchend="onFeatureTouchEnd">
                     <div class="flex gap-6 transition-transform duration-300 ease-in-out"
                         :style="{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }">
                         <div v-for="(slide, index) in slides" :key="index"
@@ -202,17 +235,19 @@ const onTouchEnd = () => {
                 </div>
 
 
-                <button @click="prev" class="absolute left-0  hover:bg-background p-2 rounded-full hover:shadow-lg z-10"
+                <button @click="prev"
+                    class="absolute left-4  hover:scale-110 hover:opacity-100 transition-all opacity-50 z-10"
                     :disabled="currentIndex === 0">
-                    <ChevronLeftIcon class="w-6 h-6" />
+                    <ChevronLeftIcon class="h-10 text-text" />
                 </button>
-                <button @click="next" class="absolute right-0 hover:bg-background p-2 rounded-full hover:shadow-lg z-10"
+                <button @click="next"
+                    class="absolute right-4 hover:scale-110 hover:opacity-100 transition-all opacity-50 z-10"
                     :disabled="currentIndex >= slides.length - recommendedItemsPerPage">
-                    <ChevronRightIcon class="w-6 h-6" />
+                    <ChevronRightIcon class="h-10 text-text" />
                 </button>
             </div>
 
-            <div class="container block md:hidden mt-12">
+            <div class="container block md:hidden mt-12 autoShow">
                 <NuxtLink to="/blog"
                     class="w-1/2 flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
                     <p class="text-base font-light ">Explore</p>
@@ -225,9 +260,9 @@ const onTouchEnd = () => {
         <!-- Hot blog -->
         <section class="py-20">
             <div class="container flex justify-between items-center mb-12">
-                <h2 class="text-center text-3xl font-bold">Hot Blog</h2>
+                <h2 class="text-center text-3xl font-bold fade-slide-left-to-right">Hot Blog</h2>
 
-                <div class="hidden md:block">
+                <div class="hidden md:block fade-slide-right-to-left">
                     <NuxtLink to="/blog"
                         class="flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
                         <p class="text-base font-light ">Explore</p>
@@ -236,12 +271,12 @@ const onTouchEnd = () => {
                     </NuxtLink>
                 </div>
             </div>
-            <div class="container grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="container grid grid-cols-1 md:grid-cols-4 gap-12 ">
                 <!-- Blog chính (Lớn) -->
                 <div class="md:col-span-2 flex flex-col gap-6">
                     <NuxtImg format="webp" densities="x1" :src="blogs[0].image" alt=""
-                        class="rounded-md w-full h-[250px] object-cover shadow-md" />
-                    <div>
+                        class="rounded-md w-full h-[250px] object-cover shadow-md fade-slide-left-to-right" />
+                    <div class="fade-slide-left-to-right">
                         <h3 class="text-2xl font-semibold mb-2">{{ blogs[0].title }}</h3>
                         <p class="text-md font-light text-text">{{ blogs[0].text }}</p>
                     </div>
@@ -249,7 +284,8 @@ const onTouchEnd = () => {
 
                 <!-- Danh sách các blog nhỏ -->
                 <div class="md:col-span-2 flex flex-col gap-6">
-                    <div v-for="(blog, index) in blogs.slice(1)" :key="index" class="flex items-center gap-6">
+                    <div v-for="(blog, index) in blogs.slice(1)" :key="index"
+                        class="flex items-center gap-6 fade-slide-right-to-left">
                         <NuxtImg format="webp" densities="x1" :src="blog.image" alt=""
                             class="rounded-md w-1/2 h-20 object-cover shadow-md" />
                         <div>
@@ -259,7 +295,7 @@ const onTouchEnd = () => {
                     </div>
                 </div>
             </div>
-            <div class="container block md:hidden mt-12">
+            <div class="container block md:hidden mt-12 autoShow">
                 <NuxtLink to="/blog"
                     class="w-1/2 flex justify-center gap-6 items-center mx-auto backdrop-blur-md lg:font-semibold isolation-auto before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full before:-left-full before:hover:left-0 before:rounded-full before:bg-secondary hover:text-white before:-z-10 before:aspect-square before:hover:scale-150 before:hover:duration-700 relative z-10 px-4 py-1 overflow-hidden border border-border  rounded-full group">
                     <p class="text-base font-light ">Explore</p>
@@ -289,5 +325,56 @@ const onTouchEnd = () => {
 .fade-slide-leave-to {
     opacity: 0;
     transform: translateY(-50px);
+}
+
+.autoShow {
+    animation: autoShowAnimation both;
+    animation-timeline: view(70% 5%);
+}
+
+@keyframes autoShowAnimation {
+    from {
+        opacity: 0;
+        transform: translateY(200px) scale(0.3);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.fade-slide-left-to-right {
+    animation: leftToRightAnimation both;
+    animation-timeline: view(70% 5%);
+}
+
+.fade-slide-right-to-left {
+    animation: rightToLeftAnimation both;
+    animation-timeline: view(70% 5%);
+}
+
+@keyframes leftToRightAnimation {
+    from {
+        clip-path: inset(0 100% 0 0);
+        opacity: 0;
+    }
+
+    to {
+        clip-path: inset(0 0 0 0);
+        opacity: 1;
+    }
+}
+
+@keyframes rightToLeftAnimation {
+    from {
+        clip-path: inset(0 0 0 100%);
+        opacity: 0;
+    }
+
+    to {
+        clip-path: inset(0 0 0 0);
+        opacity: 1;
+    }
 }
 </style>
