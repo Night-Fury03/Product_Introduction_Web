@@ -5,7 +5,7 @@
 .nitro
 .cache
 dist
-
+Dockerfile
 # Node dependencies
 node_modules
 

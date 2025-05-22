@@ -63,8 +63,9 @@ const getSlideStyle = (index) => {
 };
 
 const itemsPerPage = computed(() => {
-    if (window.innerWidth >= 1024) return 4; // Desktop
-    if (window.innerWidth >= 768) return 3;  // Tablet
+    return process.client ? (window.innerWidth >= 1024 ? 4: 3) : 0;
+    // if (window.innerWidth >= 1024) return 4; // Desktop
+    // if (window.innerWidth >= 768) return 3;  // Tablet
     return 2; // Mobile
 });
 
